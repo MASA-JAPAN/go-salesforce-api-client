@@ -10,7 +10,6 @@ import (
 func main() {
 	AuthenticatePasswordExample()
 	AuthenticateClientCredentialsExample()
-
 }
 
 func AuthenticatePasswordExample() {
