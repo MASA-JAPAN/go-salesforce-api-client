@@ -165,3 +165,45 @@ func (c *Client) DeleteRecord(objectType, recordID string) error {
 
 	return nil
 }
+
+// DescribeSObject retrieves metadata for a given Salesforce object
+func (c *Client) DescribeSObject(objectType string) (map[string]interface{}, error) {
+	if c.AccessToken == "" || c.InstanceURL == "" {
+		return nil, errors.New("missing authentication details")
+	}
+
+	url := fmt.Sprintf("%s/services/data/v58.0/sobjects/%s/describe", c.InstanceURL, objectType)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+c.AccessToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("failed to retrieve SObject description, status: %d, response: %s", resp.StatusCode, string(body))
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var describe map[string]interface{}
+	fmt.Println(resp)
+	if err := json.Unmarshal(body, &describe); err != nil {
+		return nil, err
+	}
+
+	return describe, nil
+
+}

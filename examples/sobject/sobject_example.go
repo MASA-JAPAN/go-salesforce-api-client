@@ -2,25 +2,55 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	go_salesforce_client "github.com/MASA-JAPAN/go-salesforce-client"
 )
 
 func main() {
+	CrudExample()
+	describeExample()
+}
+
+func describeExample() {
 	auth := go_salesforce_client.Auth{
 		ClientID:     "your_client_id",
 		ClientSecret: "your_client_secret",
-		Username:     "your_username",
-		Password:     "your_password",
-		TokenURL:     "https://login.salesforce.com/services/oauth2/token",
+		TokenURL:     "https://yourdomain/services/oauth2/token",
 	}
 
-	// Authenticate
-	client, err := auth.AuthenticatePassword()
+	// Authenticate and retrieve an access token
+	client, err := auth.AuthenticateClientCredentials()
 	if err != nil {
-		fmt.Println("Error authenticating:", err)
+		log.Fatalf("Authentication failed: %v", err)
+	}
+
+	// Describe an SObject
+	sObjectType := "Account"
+	describe, err := client.DescribeSObject(sObjectType)
+	if err != nil {
+		fmt.Println("Error retrieving SObject description:", err)
 		return
 	}
+
+	// Print describe details
+	fmt.Println("SObject Description:", describe)
+
+}
+
+func CrudExample() {
+	auth := go_salesforce_client.Auth{
+		ClientID:     "your_client_id",
+		ClientSecret: "your_client_secret",
+		TokenURL:     "https://yourdomain/services/oauth2/token",
+	}
+
+	// Authenticate and retrieve an access token
+	client, err := auth.AuthenticateClientCredentials()
+	if err != nil {
+		log.Fatalf("Authentication failed: %v", err)
+	}
+
 	// Create a record
 	record := map[string]interface{}{
 		"Name": "Example Account",
@@ -58,4 +88,5 @@ func main() {
 		return
 	}
 	fmt.Println("Record Deleted Successfully!")
+
 }
