@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	go_salesforce_client "github.com/MASA-JAPAN/go-salesforce-client"
+	go_salesforce_api_client "github.com/MASA-JAPAN/go-salesforce-api-client"
 )
 
 func main() {
@@ -15,7 +15,7 @@ func main() {
 
 func CreateRecordsExample() {
 	// Initialize authentication details
-	auth := go_salesforce_client.Auth{
+	auth := go_salesforce_api_client.Auth{
 		ClientID:     "your_client_id",
 		ClientSecret: "your_client_secret",
 		TokenURL:     "https://yourdomain/services/oauth2/token",
@@ -46,7 +46,7 @@ func CreateRecordsExample() {
 
 func UpdateRecordsExample() {
 	// Initialize authentication details
-	auth := go_salesforce_client.Auth{
+	auth := go_salesforce_api_client.Auth{
 		ClientID:     "your_client_id",
 		ClientSecret: "your_client_secret",
 		TokenURL:     "https://yourdomain/services/oauth2/token",
@@ -74,7 +74,7 @@ func UpdateRecordsExample() {
 
 func DeleteRecordsExample() {
 	// Initialize authentication details
-	auth := go_salesforce_client.Auth{
+	auth := go_salesforce_api_client.Auth{
 		ClientID:     "your_client_id",
 		ClientSecret: "your_client_secret",
 		TokenURL:     "https://yourdomain/services/oauth2/token",

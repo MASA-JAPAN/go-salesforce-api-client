@@ -1,4 +1,4 @@
-package go_salesforce_client
+package go_salesforce_api_client
 
 import (
 	"encoding/json"

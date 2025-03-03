@@ -1,4 +1,4 @@
-package go_salesforce_client
+package go_salesforce_api_client
 
 import (
 	"bytes"
@@ -199,7 +199,6 @@ func (c *Client) DescribeSObject(objectType string) (map[string]interface{}, err
 	}
 
 	var describe map[string]interface{}
-	fmt.Println(resp)
 	if err := json.Unmarshal(body, &describe); err != nil {
 		return nil, err
 	}

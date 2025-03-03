@@ -1,1 +1,1 @@
-# go-salesforce-client
+# go-salesforce-api-client
