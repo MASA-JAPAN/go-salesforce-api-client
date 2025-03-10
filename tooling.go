@@ -1,6 +1,7 @@
 package go_salesforce_api_client
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -55,4 +56,48 @@ func (c *Client) QueryToolingAPI(soql string) (*ToolingResponse, error) {
 	}
 
 	return &queryResp, nil
+}
+
+func (c *Client) CreateCustomField(fieldData map[string]interface{}) (map[string]interface{}, error) {
+	if c.AccessToken == "" || c.InstanceURL == "" {
+		return nil, errors.New("missing authentication details")
+	}
+
+	url := fmt.Sprintf("%s/services/data/v58.0/tooling/sobjects/CustomField", c.InstanceURL)
+
+	jsonData, err := json.Marshal(fieldData)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+c.AccessToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("failed to create custom field, status: %d, response: %s", resp.StatusCode, string(body))
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var response map[string]interface{}
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }
