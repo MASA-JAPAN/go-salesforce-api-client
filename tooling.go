@@ -17,6 +17,16 @@ type ToolingResponse struct {
 	Records   []map[string]interface{} `json:"records"`
 }
 
+// CustomField represents the structure for creating a Salesforce custom field
+type CustomField struct {
+	FullName string `json:"FullName"`
+	Metadata struct {
+		Label  string `json:"label"`
+		Type   string `json:"type"`
+		Length int    `json:"length,omitempty"`
+	} `json:"Metadata"`
+}
+
 // QueryToolingAPI executes a SOQL query against the Salesforce Tooling API
 func (c *Client) QueryToolingAPI(soql string) (*ToolingResponse, error) {
 	if c.AccessToken == "" || c.InstanceURL == "" {
@@ -58,7 +68,8 @@ func (c *Client) QueryToolingAPI(soql string) (*ToolingResponse, error) {
 	return &queryResp, nil
 }
 
-func (c *Client) CreateCustomField(fieldData map[string]interface{}) (map[string]interface{}, error) {
+// CreateCustomField creates a new custom field in Salesforce using the Tooling API
+func (c *Client) CreateCustomField(fieldData CustomField) (map[string]interface{}, error) {
 	if c.AccessToken == "" || c.InstanceURL == "" {
 		return nil, errors.New("missing authentication details")
 	}

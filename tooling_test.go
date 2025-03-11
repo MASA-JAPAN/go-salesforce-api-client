@@ -68,12 +68,15 @@ func TestCreateCustomField(t *testing.T) {
 		InstanceURL: server.URL,
 	}
 
-	fieldData := map[string]interface{}{
-		"FullName": "Account.Custom_Field__c",
-		"Metadata": map[string]interface{}{
-			"label":  "Custom Field",
-			"type":   "Text",
-			"length": 255,
+	fieldData := CustomField{
+		FullName: "Account.Custom_Field__c",
+		Metadata: struct {
+			Label  string `json:"label"`
+			Type   string `json:"type"`
+			Length int    `json:"length,omitempty"`
+		}{
+			Label: "Custom Field",
+			Type:  "Text",
 		},
 	}
 
