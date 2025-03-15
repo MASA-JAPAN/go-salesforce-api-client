@@ -2,6 +2,7 @@ package go_salesforce_api_client
 
 import (
 	"bytes"
+	"encoding/csv"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,6 +16,9 @@ type JobQueryResponse struct {
 	State  string `json:"state"`
 	Object string `json:"object"`
 }
+
+// JobQueryResult represents a single row in the job query results.
+type JobQueryResult map[string]string
 
 // CreateJobQuery initiates a Bulk Query Job in Salesforce
 func (c *Client) CreateJobQuery(query string) (*JobQueryResponse, error) {
@@ -149,6 +153,66 @@ func (c *Client) GetJobQueryResults(jobID, queryLocator string, maxRecords int) 
 	nextLocator := resp.Header.Get("Sforce-Locator")
 
 	return responseData, nextLocator, nil
+}
+
+// GetJobQueryResultsParsed retrieves job query results and converts them into a structured format
+func (c *Client) GetJobQueryResultsParsed(jobID, queryLocator string, maxRecords int) ([]JobQueryResult, string, error) {
+	if c.AccessToken == "" || c.InstanceURL == "" {
+		return nil, "", errors.New("missing authentication details")
+	}
+
+	url := fmt.Sprintf("%s/services/data/v58.0/jobs/query/%s/results?maxRecords=%d", c.InstanceURL, jobID, maxRecords)
+	if queryLocator != "" {
+		url += fmt.Sprintf("&locator=%s", queryLocator)
+	}
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, "", err
+	}
+	req.Header.Set("Authorization", "Bearer "+c.AccessToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, "", fmt.Errorf("failed to retrieve job query results, status: %d, response: %s", resp.StatusCode, string(body))
+	}
+
+	// Parse CSV response
+	reader := csv.NewReader(resp.Body)
+	records, err := reader.ReadAll()
+	if err != nil {
+		return nil, "", err
+	}
+
+	if len(records) < 1 {
+		return nil, "", errors.New("empty CSV response")
+	}
+
+	// Extract headers
+	headers := records[0]
+
+	// Convert to slice of maps
+	var results []JobQueryResult
+	for _, row := range records[1:] {
+		entry := make(JobQueryResult)
+		for i, value := range row {
+			entry[headers[i]] = value
+		}
+		results = append(results, entry)
+	}
+
+	// Extract next locator from headers
+	nextLocator := resp.Header.Get("Sforce-Locator")
+
+	return results, nextLocator, nil
 }
 
 func (c *Client) AbortJobQuery(jobID string) error {

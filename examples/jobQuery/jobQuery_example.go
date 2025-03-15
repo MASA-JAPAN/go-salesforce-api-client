@@ -16,13 +16,12 @@ func main() {
 		TokenURL:     "https://yourdomain/services/oauth2/token",
 	}
 
-	// Authenticate and retrieve an access token
 	client, err := auth.AuthenticateClientCredentials()
 	if err != nil {
 		log.Fatalf("Authentication failed: %v", err)
 	}
 
-	// Example: Create a Job Query
+	// Create a Job Query
 	query := "SELECT Id, Name FROM Account"
 	jobResponse, err := client.CreateJobQuery(query)
 	if err != nil {
@@ -30,45 +29,51 @@ func main() {
 	}
 	fmt.Printf("Job Created: %+v\n", jobResponse)
 
-	// Example: Wait for Job Query Completion
+	// Wait for Job Completion
 	jobID := jobResponse.ID
 	for {
 		jobDetails, err := client.GetJobQuery(jobID)
 		if err != nil {
 			log.Fatalf("Failed to get job query details: %v", err)
 		}
+
 		fmt.Printf("Job Details: %+v\n", jobDetails)
 
 		if jobDetails.State == "JobComplete" {
 			break
 		}
+
 		fmt.Println("Waiting for job to complete...")
-		time.Sleep(5 * time.Second) // Wait 5 seconds before retrying
+		time.Sleep(5 * time.Second)
 	}
 
-	// Example: Get All Job Query Results using Locator and maxRecords
-	allResults := ""
+	// Fetch and Print Parsed Results
+	var allResults []go_salesforce_api_client.JobQueryResult
 	queryLocator := ""
 	maxRecords := 10000
 	for {
-		partialResults, nextLocator, err := client.GetJobQueryResults(jobID, queryLocator, maxRecords)
+		results, nextLocator, err := client.GetJobQueryResultsParsed(jobID, queryLocator, maxRecords)
 		if err != nil {
 			log.Fatalf("Failed to get job query results: %v", err)
 		}
-		allResults += partialResults
-		fmt.Printf("Fetched %d records\n", len(partialResults))
 
-		fmt.Printf("Next Locator: %s\n", nextLocator)
+		allResults = append(allResults, results...)
+		fmt.Printf("Fetched %d records\n", len(results))
 
-		if nextLocator == "null" {
+		if nextLocator == "" || nextLocator == "null" {
 			break
 		}
 
 		queryLocator = nextLocator
 	}
 
-	fmt.Printf("Total Job Results:\n%s\n", allResults)
+	// Display Data
+	fmt.Println("Total Job Results:")
+	for _, row := range allResults {
+		fmt.Println(row)
+	}
 
+	// Delete the Job Query
 	err = client.DeleteJobQuery(jobID)
 	if err != nil {
 		log.Fatalf("Failed to delete job query: %v", err)
