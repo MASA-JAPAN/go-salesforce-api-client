@@ -49,7 +49,7 @@ func (c *Client) CreateJobQuery(query string) (*JobQueryResponse, error) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusCreated {
+	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("failed to create job query, status: %d, response: %s", resp.StatusCode, string(body))
 	}
@@ -105,6 +105,50 @@ func (c *Client) GetJobQuery(jobID string) (*JobQueryResponse, error) {
 	}
 
 	return &jobResponse, nil
+}
+
+// GetJobQueryResults retrieves the job query results using pagination and maxRecords
+func (c *Client) GetJobQueryResults(jobID, queryLocator string, maxRecords int) (string, string, error) {
+	if c.AccessToken == "" || c.InstanceURL == "" {
+		return "", "", errors.New("missing authentication details")
+	}
+
+	url := fmt.Sprintf("%s/services/data/v58.0/jobs/query/%s/results?maxRecords=%d", c.InstanceURL, jobID, maxRecords)
+	if queryLocator != "" {
+		url += fmt.Sprintf("&locator=%s", queryLocator)
+	}
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", "", err
+	}
+	req.Header.Set("Authorization", "Bearer "+c.AccessToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return "", "", fmt.Errorf("failed to retrieve job query results, status: %d, response: %s", resp.StatusCode, string(body))
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", "", err
+	}
+
+	// Convert response body to string since Bulk API returns CSV, not JSON
+	responseData := string(body)
+
+	// Extract next locator from headers
+	nextLocator := resp.Header.Get("Sforce-Locator")
+
+	return responseData, nextLocator, nil
 }
 
 func (c *Client) AbortJobQuery(jobID string) error {
@@ -173,84 +217,4 @@ func (c *Client) DeleteJobQuery(jobID string) error {
 	}
 
 	return nil
-}
-
-func (c *Client) GetJobQueryResultPages(jobID string) ([]string, error) {
-	if c.AccessToken == "" || c.InstanceURL == "" {
-		return nil, errors.New("missing authentication details")
-	}
-
-	url := fmt.Sprintf("%s/services/data/v58.0/jobs/query/%s/resultPages", c.InstanceURL, jobID)
-
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Authorization", "Bearer "+c.AccessToken)
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("failed to retrieve job query result pages, status: %d, response: %s", resp.StatusCode, string(body))
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var resultPages []string
-	if err := json.Unmarshal(body, &resultPages); err != nil {
-		return nil, err
-	}
-
-	return resultPages, nil
-}
-
-// GetFilteredJobQueries retrieves job queries with filtering options
-func (c *Client) GetFilteredJobQueries(isPkChunkingEnabled bool, jobType, concurrencyMode, queryLocator string) ([]JobQueryResponse, error) {
-	if c.AccessToken == "" || c.InstanceURL == "" {
-		return nil, errors.New("missing authentication details")
-	}
-
-	url := fmt.Sprintf("%s/services/data/v58.0/jobs/query?isPkChunkingEnabled=%t&jobType=%s&concurrencyMode=%s&queryLocator=%s",
-		c.InstanceURL, isPkChunkingEnabled, jobType, concurrencyMode, queryLocator)
-
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Authorization", "Bearer "+c.AccessToken)
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("failed to retrieve filtered job queries, status: %d, response: %s", resp.StatusCode, string(body))
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var jobResponses []JobQueryResponse
-	if err := json.Unmarshal(body, &jobResponses); err != nil {
-		return nil, err
-	}
-
-	return jobResponses, nil
 }

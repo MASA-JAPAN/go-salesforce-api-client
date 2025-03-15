@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"time"
 
 	go_salesforce_api_client "github.com/MASA-JAPAN/go-salesforce-api-client"
 )
@@ -14,6 +15,7 @@ func main() {
 		ClientSecret: "your_client_secret",
 		TokenURL:     "https://yourdomain/services/oauth2/token",
 	}
+
 	// Authenticate and retrieve an access token
 	client, err := auth.AuthenticateClientCredentials()
 	if err != nil {
@@ -28,36 +30,45 @@ func main() {
 	}
 	fmt.Printf("Job Created: %+v\n", jobResponse)
 
-	// Example: Retrieve Job Query Status
+	// Example: Wait for Job Query Completion
 	jobID := jobResponse.ID
-	jobDetails, err := client.GetJobQuery(jobID)
-	if err != nil {
-		log.Fatalf("Failed to get job query details: %v", err)
-	}
-	fmt.Printf("Job Details: %+v\n", jobDetails)
+	for {
+		jobDetails, err := client.GetJobQuery(jobID)
+		if err != nil {
+			log.Fatalf("Failed to get job query details: %v", err)
+		}
+		fmt.Printf("Job Details: %+v\n", jobDetails)
 
-	// Example: Retrieve Filtered Job Queries
-	filteredJobs, err := client.GetFilteredJobQueries(false, "V2Query", "Parallel", "")
-	if err != nil {
-		log.Fatalf("Failed to get filtered job queries: %v", err)
+		if jobDetails.State == "JobComplete" {
+			break
+		}
+		fmt.Println("Waiting for job to complete...")
+		time.Sleep(5 * time.Second) // Wait 5 seconds before retrying
 	}
-	fmt.Printf("Filtered Jobs: %+v\n", filteredJobs)
 
-	// Example: Retrieve Job Query Result Pages
-	resultPages, err := client.GetJobQueryResultPages(jobID)
-	if err != nil {
-		log.Fatalf("Failed to get job query result pages: %v", err)
+	// Example: Get All Job Query Results using Locator and maxRecords
+	allResults := ""
+	queryLocator := ""
+	maxRecords := 10000
+	for {
+		partialResults, nextLocator, err := client.GetJobQueryResults(jobID, queryLocator, maxRecords)
+		if err != nil {
+			log.Fatalf("Failed to get job query results: %v", err)
+		}
+		allResults += partialResults
+		fmt.Printf("Fetched %d records\n", len(partialResults))
+
+		fmt.Printf("Next Locator: %s\n", nextLocator)
+
+		if nextLocator == "null" {
+			break
+		}
+
+		queryLocator = nextLocator
 	}
-	fmt.Printf("Job Query Result Pages: %+v\n", resultPages)
 
-	// Example: Abort Job Query
-	err = client.AbortJobQuery(jobID)
-	if err != nil {
-		log.Fatalf("Failed to abort job query: %v", err)
-	}
-	fmt.Println("Job query aborted successfully.")
+	fmt.Printf("Total Job Results:\n%s\n", allResults)
 
-	// Example: Delete Job Query
 	err = client.DeleteJobQuery(jobID)
 	if err != nil {
 		log.Fatalf("Failed to delete job query: %v", err)
