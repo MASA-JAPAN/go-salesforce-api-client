@@ -9,10 +9,10 @@ import (
 
 func main() {
 	CrudExample()
-	describeExample()
+	DescribeExample()
 }
 
-func describeExample() {
+func DescribeExample() {
 	auth := go_salesforce_api_client.Auth{
 		ClientID:     "your_client_id",
 		ClientSecret: "your_client_secret",

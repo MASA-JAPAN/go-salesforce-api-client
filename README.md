@@ -7,6 +7,7 @@ A **lightweight, fast, and developer-friendly** Go client for interacting with *
 ✅ **SOQL Query Support**: Execute complex SOQL queries with ease.
 ✅ **CRUD Operations**: Perform create, read, update, delete on any Salesforce object.
 ✅ **Tooling API Access**: Interact with metadata and developer tooling API.
+✅ **Bulk Query API Support**: Efficiently fetch large datasets using Salesforce Bulk Query Jobs with automatic pagination.
 ✅ **Well-Tested**: 90%+ test coverage with `httptest`-based mocks.
 ✅ **Lightweight & Fast**: Minimal dependencies for blazing-fast performance.
 
@@ -98,6 +99,7 @@ if err != nil {
 - **SOQL Queries**
 - **CRUD Operations**
 - **Tooling API**
+- **Bulk Query API**
 - **Composite Requests**
 - **Limits API** (Monitor API usage)
 
