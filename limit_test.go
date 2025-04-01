@@ -25,7 +25,9 @@ func TestGetLimits(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(mockResponse))
+		if _, err := w.Write([]byte(mockResponse)); err != nil {
+				t.Errorf("Failed to write: %s", err)
+		}
 	}))
 	defer ts.Close()
 
