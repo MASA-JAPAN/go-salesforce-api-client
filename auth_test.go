@@ -10,6 +10,7 @@ import (
 )
 
 func TestAuthenticatePassword(t *testing.T) {
+	t.Parallel()
 	mockResponse := Client{
 		AccessToken: "mock_access_token",
 		InstanceURL: "https://mock.instance.url",
@@ -56,6 +57,7 @@ func TestAuthenticatePassword(t *testing.T) {
 }
 
 func TestAuthenticateClientCredentials(t *testing.T) {
+	t.Parallel()
 	mockResponse := Client{
 		AccessToken: "mock_access_token",
 		InstanceURL: "https://mock.instance.url",

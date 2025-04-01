@@ -8,6 +8,7 @@ import (
 )
 
 func TestQuery(t *testing.T) {
+	t.Parallel()
 	mockResponse := QueryResponse{
 		TotalSize: 1,
 		Done:      true,

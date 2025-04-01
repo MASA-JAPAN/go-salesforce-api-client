@@ -10,6 +10,7 @@ import (
 )
 
 func TestGetRecordCounts(t *testing.T) {
+	t.Parallel()
 	// Mock Salesforce API response
 	mockResponse := `{
 		"sobjects": {

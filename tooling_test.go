@@ -8,6 +8,7 @@ import (
 )
 
 func TestQueryToolingAPI(t *testing.T) {
+	t.Parallel()
 	mockResponse := ToolingResponse{
 		TotalSize: 1,
 		Done:      true,
@@ -54,6 +55,7 @@ func TestQueryToolingAPI(t *testing.T) {
 }
 
 func TestCreateCustomField(t *testing.T) {
+	t.Parallel()
 	mockResponse := map[string]interface{}{
 		"id":      "a1B3t000000XYZ",
 		"success": true,

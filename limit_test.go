@@ -10,6 +10,7 @@ import (
 )
 
 func TestGetLimits(t *testing.T) {
+	t.Parallel()
 	// Mock Salesforce API response
 	mockResponse := `{
 		"DailyApiRequests": {
