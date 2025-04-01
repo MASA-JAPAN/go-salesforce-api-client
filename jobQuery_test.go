@@ -26,7 +26,7 @@ func TestCreateJobQuery(t *testing.T) {
 	defer server.Close()
 
 	client := &go_salesforce_api_client.Client{AccessToken: "test_token", InstanceURL: server.URL}
-		resp, err := client.CreateJobQuery("SELECT Id FROM Account")
+	resp, err := client.CreateJobQuery("SELECT Id FROM Account")
 	if err != nil {
 		t.Fatalf("Expected no error, got: %v", err)
 	}
@@ -67,7 +67,7 @@ func TestGetJobQueryResultsParsed(t *testing.T) {
 		w.Header().Set("Sforce-Locator", "")
 		w.WriteHeader(http.StatusOK)
 		if _, err := io.WriteString(w, mockCSV); err != nil {
-				t.Errorf("Failed to write: %s", err)
+			t.Errorf("Failed to write: %s", err)
 		}
 	}))
 	defer server.Close()
@@ -145,7 +145,7 @@ func TestGetJobQueryResultsParsed_InvalidCSV(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		if _, err := io.WriteString(w, "bad,data\nnot,enough,columns"); err != nil {
-				t.Errorf("Failed to write: %s", err)
+			t.Errorf("Failed to write: %s", err)
 		}
 	}))
 	defer server.Close()
