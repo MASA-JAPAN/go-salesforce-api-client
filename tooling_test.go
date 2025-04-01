@@ -19,7 +19,9 @@ func TestQueryToolingAPI(t *testing.T) {
 			t.Errorf("Expected GET request, got %s", r.Method)
 		}
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(mockResponse)
+		if err := json.NewEncoder(w).Encode(mockResponse); err != nil {
+			t.Errorf("Failed to encode: %s", err)
+		}
 	}))
 	defer server.Close()
 
@@ -59,7 +61,9 @@ func TestCreateCustomField(t *testing.T) {
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(mockResponse)
+		if err := json.NewEncoder(w).Encode(mockResponse); err != nil {
+			t.Errorf("Failed to encode: %s", err)
+		}
 	}))
 	defer server.Close()
 

@@ -16,7 +16,9 @@ func TestCreateRecord(t *testing.T) {
 			t.Errorf("Expected POST request, got %s", r.Method)
 		}
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(mockResponse)
+		if err := json.NewEncoder(w).Encode(mockResponse); err != nil {
+			t.Errorf("Failed to encode: %s", err)
+		}
 	}))
 	defer server.Close()
 
@@ -40,7 +42,9 @@ func TestGetRecord(t *testing.T) {
 			t.Errorf("Expected GET request, got %s", r.Method)
 		}
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(mockResponse)
+		if err := json.NewEncoder(w).Encode(mockResponse); err != nil {
+			t.Errorf("Failed to encode: %s", err)
+		}
 	}))
 	defer server.Close()
 
@@ -99,7 +103,9 @@ func TestDescribeSObject(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(mockResponse)
+		if err := json.NewEncoder(w).Encode(mockResponse); err != nil {
+			t.Errorf("Failed to encode: %s", err)
+		}
 	}))
 	defer server.Close()
 

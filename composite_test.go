@@ -13,7 +13,9 @@ func TestCreateRecords(t *testing.T) {
 			t.Errorf("Expected POST request, got %s", r.Method)
 		}
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode([]CompositeResponse{{ID: "000000000000000000", Success: true}})
+		if err := json.NewEncoder(w).Encode([]CompositeResponse{{ID: "000000000000000000", Success: true}}); err != nil {
+			t.Errorf("Failed to encode: %s", err)
+		}
 	}))
 	defer server.Close()
 

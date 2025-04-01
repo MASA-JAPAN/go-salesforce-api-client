@@ -22,13 +22,18 @@ func TestAuthenticatePassword(t *testing.T) {
 			t.Errorf("Expected POST request, got %s", r.Method)
 		}
 
-		r.ParseForm()
+		if err := r.ParseForm(); err != nil {
+			t.Errorf("Failed to parse form: %s", err)
+		}
+
 		if r.Form.Get("grant_type") != "password" {
 			t.Errorf("Expected grant_type=password, got %s", r.Form.Get("grant_type"))
 		}
 
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(mockResponse)
+		if err := json.NewEncoder(w).Encode(mockResponse); err != nil {
+			t.Errorf("Failed to encode: %s", err)
+		}
 	}))
 	defer server.Close()
 
@@ -79,7 +84,9 @@ func TestAuthenticateClientCredentials(t *testing.T) {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(mockResponse)
+		if err := json.NewEncoder(w).Encode(mockResponse); err != nil {
+			t.Errorf("Failed to encode: %s", err)
+		}
 	}))
 	defer server.Close()
 

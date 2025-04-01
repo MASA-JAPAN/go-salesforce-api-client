@@ -18,12 +18,14 @@ func TestCreateJobQuery(t *testing.T) {
 	}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(mockResponse)
+		if err := json.NewEncoder(w).Encode(mockResponse); err != nil {
+			t.Errorf("Failed to encode: %s", err)
+		}
 	}))
 	defer server.Close()
 
 	client := &go_salesforce_api_client.Client{AccessToken: "test_token", InstanceURL: server.URL}
-	resp, err := client.CreateJobQuery("SELECT Id FROM Account")
+		resp, err := client.CreateJobQuery("SELECT Id FROM Account")
 	if err != nil {
 		t.Fatalf("Expected no error, got: %v", err)
 	}
@@ -40,7 +42,9 @@ func TestGetJobQuery(t *testing.T) {
 	}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(mockResponse)
+		if err := json.NewEncoder(w).Encode(mockResponse); err != nil {
+			t.Errorf("Failed to encode: %s", err)
+		}
 	}))
 	defer server.Close()
 
@@ -59,7 +63,9 @@ func TestGetJobQueryResultsParsed(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Sforce-Locator", "")
 		w.WriteHeader(http.StatusOK)
-		io.WriteString(w, mockCSV)
+		if _, err := io.WriteString(w, mockCSV); err != nil {
+				t.Errorf("Failed to write: %s", err)
+		}
 	}))
 	defer server.Close()
 
@@ -111,7 +117,9 @@ func TestDeleteJobQuery(t *testing.T) {
 func TestGetJobQueryResultsParsed_Empty(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		io.WriteString(w, "")
+		if _, err := io.WriteString(w, ""); err != nil {
+			t.Errorf("Failed to write: %s", err)
+		}
 	}))
 	defer server.Close()
 
@@ -129,7 +137,9 @@ func TestGetJobQueryResultsParsed_Empty(t *testing.T) {
 func TestGetJobQueryResultsParsed_InvalidCSV(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		io.WriteString(w, "bad,data\nnot,enough,columns")
+		if _, err := io.WriteString(w, "bad,data\nnot,enough,columns"); err != nil {
+				t.Errorf("Failed to write: %s", err)
+		}
 	}))
 	defer server.Close()
 
