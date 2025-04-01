@@ -204,5 +204,4 @@ func (c *Client) DescribeSObject(objectType string) (map[string]interface{}, err
 	}
 
 	return describe, nil
-
 }

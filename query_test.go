@@ -44,5 +44,4 @@ func TestQuery(t *testing.T) {
 	if len(resp.Records) != len(mockResponse.Records) {
 		t.Errorf("Expected %d records, got %d", len(mockResponse.Records), len(resp.Records))
 	}
-
 }
