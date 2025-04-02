@@ -36,7 +36,7 @@ func (c *Client) QueryToolingAPI(soql string) (*ToolingResponse, error) {
 	encodedSoql := url.QueryEscape(soql)
 	url := fmt.Sprintf("%s/services/data/v58.0/tooling/query/?q=%s", c.InstanceURL, encodedSoql)
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func (c *Client) CreateCustomField(fieldData CustomField) (map[string]interface{
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, err
 	}

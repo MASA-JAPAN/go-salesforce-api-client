@@ -27,7 +27,7 @@ func (c *Client) GetRecordCounts(objects []string) (CountResponse, error) {
 
 	url := fmt.Sprintf("%s/services/data/v58.0/limits/recordCount?sObjects=%s", c.InstanceURL, sObjectsParam)
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}

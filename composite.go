@@ -39,7 +39,7 @@ func (c *Client) CreateRecords(objectType string, records []map[string]interface
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func (c *Client) UpdateRecords(objectType string, records []map[string]interface
 		return err
 	}
 
-	req, err := http.NewRequest("PATCH", url, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest(http.MethodPatch, url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return err
 	}
@@ -142,7 +142,7 @@ func (c *Client) DeleteRecords(objectType string, recordIDs []string) error {
 		return err
 	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return err
 	}

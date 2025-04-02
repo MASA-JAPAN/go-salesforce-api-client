@@ -29,7 +29,7 @@ func (c *Client) CreateRecord(objectType string, record map[string]interface{}) 
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (c *Client) GetRecord(objectType, recordID string) (map[string]interface{},
 
 	url := fmt.Sprintf("%s/services/data/v58.0/sobjects/%s/%s", c.InstanceURL, objectType, recordID)
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +114,7 @@ func (c *Client) UpdateRecord(objectType, recordID string, updates map[string]in
 		return err
 	}
 
-	req, err := http.NewRequest("PATCH", url, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest(http.MethodPatch, url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return err
 	}
@@ -144,7 +144,7 @@ func (c *Client) DeleteRecord(objectType, recordID string) error {
 
 	url := fmt.Sprintf("%s/services/data/v58.0/sobjects/%s/%s", c.InstanceURL, objectType, recordID)
 
-	req, err := http.NewRequest("DELETE", url, nil)
+	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
 		return err
 	}
@@ -174,7 +174,7 @@ func (c *Client) DescribeSObject(objectType string) (map[string]interface{}, err
 
 	url := fmt.Sprintf("%s/services/data/v58.0/sobjects/%s/describe", c.InstanceURL, objectType)
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
