@@ -38,3 +38,5 @@ linters:
 linters-settings:
   cyclop:
     max-complexity: 12
+  govet:
+    go: "1.24"
