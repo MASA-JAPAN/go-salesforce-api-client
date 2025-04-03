@@ -9,6 +9,7 @@ import (
 )
 
 func TestCreateRecord(t *testing.T) {
+	t.Parallel()
 	mockResponse := SobjectResponse{ID: "1", Success: true}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -16,7 +17,9 @@ func TestCreateRecord(t *testing.T) {
 			t.Errorf("Expected POST request, got %s", r.Method)
 		}
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(mockResponse)
+		if err := json.NewEncoder(w).Encode(mockResponse); err != nil {
+			t.Errorf("Failed to encode: %s", err)
+		}
 	}))
 	defer server.Close()
 
@@ -33,6 +36,7 @@ func TestCreateRecord(t *testing.T) {
 }
 
 func TestGetRecord(t *testing.T) {
+	t.Parallel()
 	mockResponse := map[string]interface{}{"Id": "1", "Name": "Test Record"}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -40,7 +44,9 @@ func TestGetRecord(t *testing.T) {
 			t.Errorf("Expected GET request, got %s", r.Method)
 		}
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(mockResponse)
+		if err := json.NewEncoder(w).Encode(mockResponse); err != nil {
+			t.Errorf("Failed to encode: %s", err)
+		}
 	}))
 	defer server.Close()
 
@@ -53,6 +59,7 @@ func TestGetRecord(t *testing.T) {
 }
 
 func TestUpdateRecord(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPatch {
 			t.Errorf("Expected PATCH request, got %s", r.Method)
@@ -70,6 +77,7 @@ func TestUpdateRecord(t *testing.T) {
 }
 
 func TestDeleteRecord(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodDelete {
 			t.Errorf("Expected DELETE request, got %s", r.Method)
@@ -86,6 +94,7 @@ func TestDeleteRecord(t *testing.T) {
 }
 
 func TestDescribeSObject(t *testing.T) {
+	t.Parallel()
 	mockResponse := map[string]interface{}{
 		"name":      "Account",
 		"label":     "Account",
@@ -99,7 +108,9 @@ func TestDescribeSObject(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(mockResponse)
+		if err := json.NewEncoder(w).Encode(mockResponse); err != nil {
+			t.Errorf("Failed to encode: %s", err)
+		}
 	}))
 	defer server.Close()
 

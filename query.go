@@ -25,7 +25,7 @@ func (c *Client) Query(soql string) (*QueryResponse, error) {
 	encodedSoql := url.QueryEscape(soql)
 	queryURL := fmt.Sprintf("%s/services/data/v58.0/query/?q=%s", c.InstanceURL, encodedSoql)
 
-	req, err := http.NewRequest("GET", queryURL, nil)
+	req, err := http.NewRequest(http.MethodGet, queryURL, nil)
 	if err != nil {
 		return nil, err
 	}

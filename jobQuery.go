@@ -39,7 +39,7 @@ func (c *Client) CreateJobQuery(query string) (*JobQueryResponse, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +79,7 @@ func (c *Client) GetJobQuery(jobID string) (*JobQueryResponse, error) {
 
 	url := fmt.Sprintf("%s/services/data/v58.0/jobs/query/%s", c.InstanceURL, jobID)
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (c *Client) GetJobQueryResults(jobID, queryLocator string, maxRecords int) 
 		url += fmt.Sprintf("&locator=%s", queryLocator)
 	}
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return "", "", err
 	}
@@ -166,7 +166,7 @@ func (c *Client) GetJobQueryResultsParsed(jobID, queryLocator string, maxRecords
 		url += fmt.Sprintf("&locator=%s", queryLocator)
 	}
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, "", err
 	}
@@ -231,7 +231,7 @@ func (c *Client) AbortJobQuery(jobID string) error {
 		return err
 	}
 
-	req, err := http.NewRequest("PATCH", url, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest(http.MethodPatch, url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return err
 	}
@@ -261,7 +261,7 @@ func (c *Client) DeleteJobQuery(jobID string) error {
 
 	url := fmt.Sprintf("%s/services/data/v58.0/jobs/query/%s", c.InstanceURL, jobID)
 
-	req, err := http.NewRequest("DELETE", url, nil)
+	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
 		return err
 	}

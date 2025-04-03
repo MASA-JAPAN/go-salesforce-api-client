@@ -8,6 +8,7 @@ import (
 )
 
 func TestQuery(t *testing.T) {
+	t.Parallel()
 	mockResponse := QueryResponse{
 		TotalSize: 1,
 		Done:      true,
@@ -19,7 +20,9 @@ func TestQuery(t *testing.T) {
 			t.Errorf("Expected GET request, got %s", r.Method)
 		}
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(mockResponse)
+		if err := json.NewEncoder(w).Encode(mockResponse); err != nil {
+			t.Errorf("Failed to encode: %s", err)
+		}
 	}))
 	defer server.Close()
 
@@ -41,5 +44,4 @@ func TestQuery(t *testing.T) {
 	if len(resp.Records) != len(mockResponse.Records) {
 		t.Errorf("Expected %d records, got %d", len(mockResponse.Records), len(resp.Records))
 	}
-
 }

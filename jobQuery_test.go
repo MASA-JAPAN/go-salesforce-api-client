@@ -11,6 +11,7 @@ import (
 )
 
 func TestCreateJobQuery(t *testing.T) {
+	t.Parallel()
 	mockResponse := go_salesforce_api_client.JobQueryResponse{
 		ID:     "7501X00000XXXXXQAQ",
 		State:  "Open",
@@ -18,7 +19,9 @@ func TestCreateJobQuery(t *testing.T) {
 	}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(mockResponse)
+		if err := json.NewEncoder(w).Encode(mockResponse); err != nil {
+			t.Errorf("Failed to encode: %s", err)
+		}
 	}))
 	defer server.Close()
 
@@ -33,6 +36,7 @@ func TestCreateJobQuery(t *testing.T) {
 }
 
 func TestGetJobQuery(t *testing.T) {
+	t.Parallel()
 	mockResponse := go_salesforce_api_client.JobQueryResponse{
 		ID:     "7501X00000XXXXXQAQ",
 		State:  "InProgress",
@@ -40,7 +44,9 @@ func TestGetJobQuery(t *testing.T) {
 	}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(mockResponse)
+		if err := json.NewEncoder(w).Encode(mockResponse); err != nil {
+			t.Errorf("Failed to encode: %s", err)
+		}
 	}))
 	defer server.Close()
 
@@ -55,11 +61,14 @@ func TestGetJobQuery(t *testing.T) {
 }
 
 func TestGetJobQueryResultsParsed(t *testing.T) {
+	t.Parallel()
 	mockCSV := "Id,Name\n001ABC,Acme Corp\n002DEF,Global Inc"
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Sforce-Locator", "")
 		w.WriteHeader(http.StatusOK)
-		io.WriteString(w, mockCSV)
+		if _, err := io.WriteString(w, mockCSV); err != nil {
+			t.Errorf("Failed to write: %s", err)
+		}
 	}))
 	defer server.Close()
 
@@ -77,6 +86,7 @@ func TestGetJobQueryResultsParsed(t *testing.T) {
 }
 
 func TestAbortJobQuery(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPatch {
 			t.Errorf("Expected PATCH, got: %s", r.Method)
@@ -93,6 +103,7 @@ func TestAbortJobQuery(t *testing.T) {
 }
 
 func TestDeleteJobQuery(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodDelete {
 			t.Errorf("Expected DELETE, got: %s", r.Method)
@@ -109,9 +120,12 @@ func TestDeleteJobQuery(t *testing.T) {
 }
 
 func TestGetJobQueryResultsParsed_Empty(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		io.WriteString(w, "")
+		if _, err := io.WriteString(w, ""); err != nil {
+			t.Errorf("Failed to write: %s", err)
+		}
 	}))
 	defer server.Close()
 
@@ -127,9 +141,12 @@ func TestGetJobQueryResultsParsed_Empty(t *testing.T) {
 }
 
 func TestGetJobQueryResultsParsed_InvalidCSV(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		io.WriteString(w, "bad,data\nnot,enough,columns")
+		if _, err := io.WriteString(w, "bad,data\nnot,enough,columns"); err != nil {
+			t.Errorf("Failed to write: %s", err)
+		}
 	}))
 	defer server.Close()
 

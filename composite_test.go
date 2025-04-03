@@ -8,12 +8,15 @@ import (
 )
 
 func TestCreateRecords(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Errorf("Expected POST request, got %s", r.Method)
 		}
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode([]CompositeResponse{{ID: "000000000000000000", Success: true}})
+		if err := json.NewEncoder(w).Encode([]CompositeResponse{{ID: "000000000000000000", Success: true}}); err != nil {
+			t.Errorf("Failed to encode: %s", err)
+		}
 	}))
 	defer server.Close()
 
@@ -26,6 +29,7 @@ func TestCreateRecords(t *testing.T) {
 }
 
 func TestUpdateRecords(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPatch {
 			t.Errorf("Expected PATCH request, got %s", r.Method)
@@ -43,6 +47,7 @@ func TestUpdateRecords(t *testing.T) {
 }
 
 func TestDeleteRecords(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Errorf("Expected POST request, got %s", r.Method)
