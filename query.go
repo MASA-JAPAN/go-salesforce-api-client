@@ -37,7 +37,11 @@ func (c *Client) Query(soql string) (*QueryResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			_ = err
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("failed to execute SOQL query, status: %d", resp.StatusCode)

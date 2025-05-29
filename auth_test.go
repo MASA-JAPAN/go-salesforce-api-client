@@ -74,7 +74,11 @@ func TestAuthenticateClientCredentials(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to read request body: %v", err)
 		}
-		defer r.Body.Close()
+		defer func() {
+			if err := r.Body.Close(); err != nil {
+				_ = err
+			}
+		}()
 
 		values, err := url.ParseQuery(string(body))
 		if err != nil {
