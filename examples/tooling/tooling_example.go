@@ -70,5 +70,4 @@ func CreateFieldExample() {
 	}
 
 	fmt.Println("Custom Field Created Successfully:", response)
-
 }

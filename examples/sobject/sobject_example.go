@@ -35,7 +35,6 @@ func DescribeExample() {
 
 	// Print describe details
 	fmt.Println("SObject Description:", describe)
-
 }
 
 func CrudExample() {
@@ -88,5 +87,4 @@ func CrudExample() {
 		return
 	}
 	fmt.Println("Record Deleted Successfully!")
-
 }
