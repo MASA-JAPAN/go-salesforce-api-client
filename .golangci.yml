@@ -1,6 +1,7 @@
-version: 2
+version: "2"
+
 linters:
-  enable-all: true
+  default: all
   disable:
     - copyloopvar
     - err113 # WARN [lintersdb] The name "goerr113" is deprecated. The linter has been renamed to: err113
@@ -33,7 +34,20 @@ linters:
     - noctx
     - perfsprint
     - prealloc
-
-linters-settings:
-  cyclop:
-    max-complexity: 12
+    - mnd
+  settings:
+    cyclop:
+      max-complexity: 12
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - examples$
+formatters:
+  enable:
+    - gofmt
+    - goimports
