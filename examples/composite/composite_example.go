@@ -41,7 +41,6 @@ func CreateRecordsExample() {
 	}
 
 	fmt.Println("Record Creation Response:", response)
-
 }
 
 func UpdateRecordsExample() {
@@ -69,7 +68,6 @@ func UpdateRecordsExample() {
 		fmt.Println("Error updating records:", err)
 		return
 	}
-
 }
 
 func DeleteRecordsExample() {
@@ -93,5 +91,4 @@ func DeleteRecordsExample() {
 		fmt.Println("Error updating records:", err)
 		return
 	}
-
 }
