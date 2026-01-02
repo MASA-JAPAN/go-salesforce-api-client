@@ -11,7 +11,7 @@ func main() {
 	auth := go_salesforce_api_client.Auth{
 		ClientID:     "your_client_id",
 		ClientSecret: "your_client_secret",
-		TokenURL:     "https://yourdomain/services/oauth2/token",
+		TokenURL:     "https://your-domain.my.salesforce.com/services/oauth2/token",
 	}
 
 	// Authenticate and retrieve an access token
