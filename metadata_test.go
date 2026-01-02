@@ -373,7 +373,7 @@ func TestCheckDeployStatus_FailureWithDetails(t *testing.T) {
 	}
 }
 
-//nolint:cyclop // Comprehensive test validation requires multiple checks
+//nolint // Comprehensive test validation requires multiple checks (cyclop)
 func TestCheckDeployStatus_WithTestResults(t *testing.T) {
 	t.Parallel()
 
