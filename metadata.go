@@ -300,7 +300,7 @@ func (c *Client) sendSOAPRequest(endpoint string, envelope *soapEnvelope) ([]byt
 func (c *Client) parseSOAPFault(responseBody []byte) error {
 	var soapFault soapFault
 	if err := xml.Unmarshal(responseBody, &soapFault); err != nil {
-		return fmt.Errorf("%w: failed to parse SOAP fault: %v", ErrSOAPFault, err)
+		return fmt.Errorf("%w: failed to parse SOAP fault: %w", ErrSOAPFault, err)
 	}
 
 	faultString := soapFault.Body.Fault.FaultString
@@ -378,6 +378,205 @@ func (c *Client) DeployMetadata(zipFileBase64 string, options MetadataDeployOpti
 	}, nil
 }
 
+// Helper types for CheckDeployStatus XML parsing
+type deployStatusResponse struct {
+	Result struct {
+		CheckOnly                bool             `xml:"checkOnly"`
+		CompletedDate            string           `xml:"completedDate"`
+		CreatedDate              string           `xml:"createdDate"`
+		Done                     bool             `xml:"done"`
+		ErrorMessage             string           `xml:"errorMessage"`
+		ID                       string           `xml:"id"`
+		IgnoreWarnings           bool             `xml:"ignoreWarnings"`
+		NumberComponentErrors    int              `xml:"numberComponentErrors"`
+		NumberComponentsDeployed int              `xml:"numberComponentsDeployed"`
+		NumberComponentsTotal    int              `xml:"numberComponentsTotal"`
+		NumberTestErrors         int              `xml:"numberTestErrors"`
+		NumberTestsCompleted     int              `xml:"numberTestsCompleted"`
+		NumberTestsTotal         int              `xml:"numberTestsTotal"`
+		RollbackOnError          bool             `xml:"rollbackOnError"`
+		RunTestsEnabled          bool             `xml:"runTestsEnabled"`
+		StartDate                string           `xml:"startDate"`
+		Status                   string           `xml:"status"`
+		Success                  bool             `xml:"success"`
+		Details                  deployDetailsXML `xml:"details"`
+	} `xml:"Body>checkDeployStatusResponse>result"`
+}
+
+type deployDetailsXML struct {
+	ComponentSuccesses []componentSuccessXML `xml:"componentSuccesses"`
+	ComponentFailures  []componentFailureXML `xml:"componentFailures"`
+	RunTestResult      runTestResultXML      `xml:"runTestResult"`
+}
+
+type componentSuccessXML struct {
+	Changed       bool   `xml:"changed"`
+	Created       bool   `xml:"created"`
+	Deleted       bool   `xml:"deleted"`
+	FileName      string `xml:"fileName"`
+	FullName      string `xml:"fullName"`
+	ComponentType string `xml:"componentType"`
+	Success       bool   `xml:"success"`
+}
+
+type componentFailureXML struct {
+	Changed       bool   `xml:"changed"`
+	Created       bool   `xml:"created"`
+	Deleted       bool   `xml:"deleted"`
+	FileName      string `xml:"fileName"`
+	FullName      string `xml:"fullName"`
+	ComponentType string `xml:"componentType"`
+	Problem       string `xml:"problem"`
+	ProblemType   string `xml:"problemType"`
+	LineNumber    int    `xml:"lineNumber"`
+	ColumnNumber  int    `xml:"columnNumber"`
+	Success       bool   `xml:"success"`
+}
+
+type runTestResultXML struct {
+	NumFailures  int               `xml:"numFailures"`
+	NumTestsRun  int               `xml:"numTestsRun"`
+	TotalTime    float64           `xml:"totalTime"`
+	Successes    []testSuccessXML  `xml:"successes"`
+	Failures     []testFailureXML  `xml:"failures"`
+	CodeCoverage []codeCoverageXML `xml:"codeCoverage"`
+}
+
+type testSuccessXML struct {
+	ID         string  `xml:"id"`
+	MethodName string  `xml:"methodName"`
+	Name       string  `xml:"name"`
+	Namespace  string  `xml:"namespace"`
+	Time       float64 `xml:"time"`
+}
+
+type testFailureXML struct {
+	ID         string  `xml:"id"`
+	Message    string  `xml:"message"`
+	MethodName string  `xml:"methodName"`
+	Name       string  `xml:"name"`
+	Namespace  string  `xml:"namespace"`
+	StackTrace string  `xml:"stackTrace"`
+	Time       float64 `xml:"time"`
+	Type       string  `xml:"type"`
+}
+
+type codeCoverageXML struct {
+	ID                     string            `xml:"id"`
+	Name                   string            `xml:"name"`
+	Namespace              string            `xml:"namespace"`
+	NumLocations           int               `xml:"numLocations"`
+	NumLocationsNotCovered int               `xml:"numLocationsNotCovered"`
+	Type                   string            `xml:"type"`
+	LocationsNotCovered    []codeLocationXML `xml:"locationsNotCovered"`
+}
+
+type codeLocationXML struct {
+	Column        int     `xml:"column"`
+	Line          int     `xml:"line"`
+	NumExecutions int     `xml:"numExecutions"`
+	Time          float64 `xml:"time"`
+}
+
+func convertDeployDetails(xmlDetails deployDetailsXML) *DeployDetails {
+	details := &DeployDetails{}
+
+	// Convert component successes
+	for _, s := range xmlDetails.ComponentSuccesses {
+		details.ComponentSuccesses = append(details.ComponentSuccesses, ComponentSuccess{
+			Changed:       s.Changed,
+			Created:       s.Created,
+			Deleted:       s.Deleted,
+			FileName:      s.FileName,
+			FullName:      s.FullName,
+			ComponentType: s.ComponentType,
+			Success:       s.Success,
+		})
+	}
+
+	// Convert component failures
+	for _, f := range xmlDetails.ComponentFailures {
+		details.ComponentFailures = append(details.ComponentFailures, ComponentFailure{
+			Changed:       f.Changed,
+			Created:       f.Created,
+			Deleted:       f.Deleted,
+			FileName:      f.FileName,
+			FullName:      f.FullName,
+			ComponentType: f.ComponentType,
+			Problem:       f.Problem,
+			ProblemType:   f.ProblemType,
+			LineNumber:    f.LineNumber,
+			ColumnNumber:  f.ColumnNumber,
+			Success:       f.Success,
+		})
+	}
+
+	// Convert test results if present
+	if xmlDetails.RunTestResult.NumTestsRun > 0 {
+		details.RunTestResult = convertTestResult(xmlDetails.RunTestResult)
+	}
+
+	return details
+}
+
+func convertTestResult(xmlTest runTestResultXML) *RunTestResult {
+	testResult := &RunTestResult{
+		NumFailures: xmlTest.NumFailures,
+		NumTestsRun: xmlTest.NumTestsRun,
+		TotalTime:   xmlTest.TotalTime,
+	}
+
+	// Convert test successes
+	for _, ts := range xmlTest.Successes {
+		testResult.Successes = append(testResult.Successes, TestSuccess{
+			ID:         ts.ID,
+			MethodName: ts.MethodName,
+			Name:       ts.Name,
+			Namespace:  ts.Namespace,
+			Time:       ts.Time,
+		})
+	}
+
+	// Convert test failures
+	for _, tf := range xmlTest.Failures {
+		testResult.Failures = append(testResult.Failures, TestFailure{
+			ID:         tf.ID,
+			Message:    tf.Message,
+			MethodName: tf.MethodName,
+			Name:       tf.Name,
+			Namespace:  tf.Namespace,
+			StackTrace: tf.StackTrace,
+			Time:       tf.Time,
+			Type:       tf.Type,
+		})
+	}
+
+	// Convert code coverage
+	for _, cc := range xmlTest.CodeCoverage {
+		coverage := CodeCoverageResult{
+			ID:                     cc.ID,
+			Name:                   cc.Name,
+			Namespace:              cc.Namespace,
+			NumLocations:           cc.NumLocations,
+			NumLocationsNotCovered: cc.NumLocationsNotCovered,
+			Type:                   cc.Type,
+		}
+
+		for _, loc := range cc.LocationsNotCovered {
+			coverage.LocationsNotCovered = append(coverage.LocationsNotCovered, CodeLocation{
+				Column:        loc.Column,
+				Line:          loc.Line,
+				NumExecutions: loc.NumExecutions,
+				Time:          loc.Time,
+			})
+		}
+
+		testResult.CodeCoverage = append(testResult.CodeCoverage, coverage)
+	}
+
+	return testResult
+}
+
 // CheckDeployStatus checks the status of an asynchronous deployment
 func (c *Client) CheckDeployStatus(asyncProcessID string) (*MetadataDeployResult, error) {
 	if c.AccessToken == "" || c.InstanceURL == "" {
@@ -400,90 +599,8 @@ func (c *Client) CheckDeployStatus(asyncProcessID string) (*MetadataDeployResult
 		return nil, err
 	}
 
-	// Parse complex deploy result
-	var response struct {
-		Result struct {
-			CheckOnly                bool   `xml:"checkOnly"`
-			CompletedDate            string `xml:"completedDate"`
-			CreatedDate              string `xml:"createdDate"`
-			Done                     bool   `xml:"done"`
-			ErrorMessage             string `xml:"errorMessage"`
-			ID                       string `xml:"id"`
-			IgnoreWarnings           bool   `xml:"ignoreWarnings"`
-			NumberComponentErrors    int    `xml:"numberComponentErrors"`
-			NumberComponentsDeployed int    `xml:"numberComponentsDeployed"`
-			NumberComponentsTotal    int    `xml:"numberComponentsTotal"`
-			NumberTestErrors         int    `xml:"numberTestErrors"`
-			NumberTestsCompleted     int    `xml:"numberTestsCompleted"`
-			NumberTestsTotal         int    `xml:"numberTestsTotal"`
-			RollbackOnError          bool   `xml:"rollbackOnError"`
-			RunTestsEnabled          bool   `xml:"runTestsEnabled"`
-			StartDate                string `xml:"startDate"`
-			Status                   string `xml:"status"`
-			Success                  bool   `xml:"success"`
-			Details                  struct {
-				ComponentSuccesses []struct {
-					Changed       bool   `xml:"changed"`
-					Created       bool   `xml:"created"`
-					Deleted       bool   `xml:"deleted"`
-					FileName      string `xml:"fileName"`
-					FullName      string `xml:"fullName"`
-					ComponentType string `xml:"componentType"`
-					Success       bool   `xml:"success"`
-				} `xml:"componentSuccesses"`
-				ComponentFailures []struct {
-					Changed       bool   `xml:"changed"`
-					Created       bool   `xml:"created"`
-					Deleted       bool   `xml:"deleted"`
-					FileName      string `xml:"fileName"`
-					FullName      string `xml:"fullName"`
-					ComponentType string `xml:"componentType"`
-					Problem       string `xml:"problem"`
-					ProblemType   string `xml:"problemType"`
-					LineNumber    int    `xml:"lineNumber"`
-					ColumnNumber  int    `xml:"columnNumber"`
-					Success       bool   `xml:"success"`
-				} `xml:"componentFailures"`
-				RunTestResult struct {
-					NumFailures int     `xml:"numFailures"`
-					NumTestsRun int     `xml:"numTestsRun"`
-					TotalTime   float64 `xml:"totalTime"`
-					Successes   []struct {
-						ID         string  `xml:"id"`
-						MethodName string  `xml:"methodName"`
-						Name       string  `xml:"name"`
-						Namespace  string  `xml:"namespace"`
-						Time       float64 `xml:"time"`
-					} `xml:"successes"`
-					Failures []struct {
-						ID         string  `xml:"id"`
-						Message    string  `xml:"message"`
-						MethodName string  `xml:"methodName"`
-						Name       string  `xml:"name"`
-						Namespace  string  `xml:"namespace"`
-						StackTrace string  `xml:"stackTrace"`
-						Time       float64 `xml:"time"`
-						Type       string  `xml:"type"`
-					} `xml:"failures"`
-					CodeCoverage []struct {
-						ID                     string `xml:"id"`
-						Name                   string `xml:"name"`
-						Namespace              string `xml:"namespace"`
-						NumLocations           int    `xml:"numLocations"`
-						NumLocationsNotCovered int    `xml:"numLocationsNotCovered"`
-						Type                   string `xml:"type"`
-						LocationsNotCovered    []struct {
-							Column        int     `xml:"column"`
-							Line          int     `xml:"line"`
-							NumExecutions int     `xml:"numExecutions"`
-							Time          float64 `xml:"time"`
-						} `xml:"locationsNotCovered"`
-					} `xml:"codeCoverage"`
-				} `xml:"runTestResult"`
-			} `xml:"details"`
-		} `xml:"Body>checkDeployStatusResponse>result"`
-	}
-
+	// Parse deploy result using helper types
+	var response deployStatusResponse
 	if err := xml.Unmarshal(responseBody, &response); err != nil {
 		return nil, fmt.Errorf("failed to parse deploy status: %w", err)
 	}
@@ -510,98 +627,11 @@ func (c *Client) CheckDeployStatus(asyncProcessID string) (*MetadataDeployResult
 		Success:                  response.Result.Success,
 	}
 
-	// Convert details if present
-	if len(response.Result.Details.ComponentSuccesses) > 0 || len(response.Result.Details.ComponentFailures) > 0 || response.Result.Details.RunTestResult.NumTestsRun > 0 {
-		result.Details = &DeployDetails{}
-
-		// Convert component successes
-		for _, s := range response.Result.Details.ComponentSuccesses {
-			result.Details.ComponentSuccesses = append(result.Details.ComponentSuccesses, ComponentSuccess{
-				Changed:       s.Changed,
-				Created:       s.Created,
-				Deleted:       s.Deleted,
-				FileName:      s.FileName,
-				FullName:      s.FullName,
-				ComponentType: s.ComponentType,
-				Success:       s.Success,
-			})
-		}
-
-		// Convert component failures
-		for _, f := range response.Result.Details.ComponentFailures {
-			result.Details.ComponentFailures = append(result.Details.ComponentFailures, ComponentFailure{
-				Changed:       f.Changed,
-				Created:       f.Created,
-				Deleted:       f.Deleted,
-				FileName:      f.FileName,
-				FullName:      f.FullName,
-				ComponentType: f.ComponentType,
-				Problem:       f.Problem,
-				ProblemType:   f.ProblemType,
-				LineNumber:    f.LineNumber,
-				ColumnNumber:  f.ColumnNumber,
-				Success:       f.Success,
-			})
-		}
-
-		// Convert test results
-		if response.Result.Details.RunTestResult.NumTestsRun > 0 {
-			testResult := &RunTestResult{
-				NumFailures: response.Result.Details.RunTestResult.NumFailures,
-				NumTestsRun: response.Result.Details.RunTestResult.NumTestsRun,
-				TotalTime:   response.Result.Details.RunTestResult.TotalTime,
-			}
-
-			// Convert test successes
-			for _, ts := range response.Result.Details.RunTestResult.Successes {
-				testResult.Successes = append(testResult.Successes, TestSuccess{
-					ID:         ts.ID,
-					MethodName: ts.MethodName,
-					Name:       ts.Name,
-					Namespace:  ts.Namespace,
-					Time:       ts.Time,
-				})
-			}
-
-			// Convert test failures
-			for _, tf := range response.Result.Details.RunTestResult.Failures {
-				testResult.Failures = append(testResult.Failures, TestFailure{
-					ID:         tf.ID,
-					Message:    tf.Message,
-					MethodName: tf.MethodName,
-					Name:       tf.Name,
-					Namespace:  tf.Namespace,
-					StackTrace: tf.StackTrace,
-					Time:       tf.Time,
-					Type:       tf.Type,
-				})
-			}
-
-			// Convert code coverage
-			for _, cc := range response.Result.Details.RunTestResult.CodeCoverage {
-				coverage := CodeCoverageResult{
-					ID:                     cc.ID,
-					Name:                   cc.Name,
-					Namespace:              cc.Namespace,
-					NumLocations:           cc.NumLocations,
-					NumLocationsNotCovered: cc.NumLocationsNotCovered,
-					Type:                   cc.Type,
-				}
-
-				for _, loc := range cc.LocationsNotCovered {
-					coverage.LocationsNotCovered = append(coverage.LocationsNotCovered, CodeLocation{
-						Column:        loc.Column,
-						Line:          loc.Line,
-						NumExecutions: loc.NumExecutions,
-						Time:          loc.Time,
-					})
-				}
-
-				testResult.CodeCoverage = append(testResult.CodeCoverage, coverage)
-			}
-
-			result.Details.RunTestResult = testResult
-		}
+	// Convert details if present using helper function
+	if len(response.Result.Details.ComponentSuccesses) > 0 ||
+		len(response.Result.Details.ComponentFailures) > 0 ||
+		response.Result.Details.RunTestResult.NumTestsRun > 0 {
+		result.Details = convertDeployDetails(response.Result.Details)
 	}
 
 	return result, nil

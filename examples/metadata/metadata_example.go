@@ -275,7 +275,11 @@ func saveZipFile(base64Data, filename string) error {
 	return os.WriteFile(filename, zipData, 0644)
 }
 
-// extractZipFile extracts a ZIP file to a directory (optional utility)
+// extractZipFile extracts a ZIP file to a directory.
+// This is an example utility function to help users understand how to extract
+// the retrieved metadata ZIP files to a local directory.
+//
+//nolint:unused // Example utility function for user reference
 func extractZipFile(base64Data, outputDir string) error {
 	// Decode base64
 	zipData, err := base64.StdEncoding.DecodeString(base64Data)

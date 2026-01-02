@@ -10,6 +10,8 @@ import (
 	go_salesforce_api_client "github.com/MASA-JAPAN/go-salesforce-api-client"
 )
 
+const testApexFileName = "classes/MyClass.cls"
+
 func TestDeployMetadata_Success(t *testing.T) {
 	t.Parallel()
 
@@ -49,7 +51,7 @@ func TestDeployMetadata_Success(t *testing.T) {
 
 		w.Header().Set("Content-Type", "text/xml; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(soapResponse))
+		_, _ = w.Write([]byte(soapResponse))
 	}))
 	defer server.Close()
 
@@ -113,7 +115,7 @@ func TestDeployMetadata_SOAPFault(t *testing.T) {
 </soapenv:Envelope>`
 
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(soapFault))
+		_, _ = w.Write([]byte(soapFault))
 	}))
 	defer server.Close()
 
@@ -156,7 +158,7 @@ func TestCheckDeployStatus_InProgress(t *testing.T) {
 
 		w.Header().Set("Content-Type", "text/xml; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(soapResponse))
+		_, _ = w.Write([]byte(soapResponse))
 	}))
 	defer server.Close()
 
@@ -231,7 +233,7 @@ func TestCheckDeployStatus_SuccessWithDetails(t *testing.T) {
 
 		w.Header().Set("Content-Type", "text/xml; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(soapResponse))
+		_, _ = w.Write([]byte(soapResponse))
 	}))
 	defer server.Close()
 
@@ -266,8 +268,8 @@ func TestCheckDeployStatus_SuccessWithDetails(t *testing.T) {
 		t.Errorf("Expected 2 component successes, got: %d", len(result.Details.ComponentSuccesses))
 	}
 
-	if result.Details.ComponentSuccesses[0].FileName != "classes/MyClass.cls" {
-		t.Errorf("Expected fileName classes/MyClass.cls, got: %s", result.Details.ComponentSuccesses[0].FileName)
+	if result.Details.ComponentSuccesses[0].FileName != testApexFileName {
+		t.Errorf("Expected fileName %s, got: %s", testApexFileName, result.Details.ComponentSuccesses[0].FileName)
 	}
 
 	if result.Details.ComponentSuccesses[0].ComponentType != "ApexClass" {
@@ -318,7 +320,7 @@ func TestCheckDeployStatus_FailureWithDetails(t *testing.T) {
 
 		w.Header().Set("Content-Type", "text/xml; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(soapResponse))
+		_, _ = w.Write([]byte(soapResponse))
 	}))
 	defer server.Close()
 
@@ -354,8 +356,8 @@ func TestCheckDeployStatus_FailureWithDetails(t *testing.T) {
 	}
 
 	failure := result.Details.ComponentFailures[0]
-	if failure.FileName != "classes/MyClass.cls" {
-		t.Errorf("Expected fileName classes/MyClass.cls, got: %s", failure.FileName)
+	if failure.FileName != testApexFileName {
+		t.Errorf("Expected fileName %s, got: %s", testApexFileName, failure.FileName)
 	}
 
 	if failure.Problem != "Invalid syntax at line 5" {
@@ -422,7 +424,7 @@ func TestCheckDeployStatus_WithTestResults(t *testing.T) {
 
 		w.Header().Set("Content-Type", "text/xml; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(soapResponse))
+		_, _ = w.Write([]byte(soapResponse))
 	}))
 	defer server.Close()
 
@@ -501,7 +503,7 @@ func TestCancelDeploy_Success(t *testing.T) {
 
 		w.Header().Set("Content-Type", "text/xml; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(soapResponse))
+		_, _ = w.Write([]byte(soapResponse))
 	}))
 	defer server.Close()
 
@@ -554,7 +556,7 @@ func TestRetrieveMetadata_Success(t *testing.T) {
 
 		w.Header().Set("Content-Type", "text/xml; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(soapResponse))
+		_, _ = w.Write([]byte(soapResponse))
 	}))
 	defer server.Close()
 
@@ -632,7 +634,7 @@ func TestCheckRetrieveStatus_InProgress(t *testing.T) {
 
 		w.Header().Set("Content-Type", "text/xml; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(soapResponse))
+		_, _ = w.Write([]byte(soapResponse))
 	}))
 	defer server.Close()
 
@@ -704,7 +706,7 @@ func TestCheckRetrieveStatus_SuccessWithZip(t *testing.T) {
 
 		w.Header().Set("Content-Type", "text/xml; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(soapResponse))
+		_, _ = w.Write([]byte(soapResponse))
 	}))
 	defer server.Close()
 
@@ -739,8 +741,8 @@ func TestCheckRetrieveStatus_SuccessWithZip(t *testing.T) {
 		t.Fatalf("Expected 2 file properties, got: %d", len(result.FileProperties))
 	}
 
-	if result.FileProperties[0].FileName != "classes/MyClass.cls" {
-		t.Errorf("Expected fileName classes/MyClass.cls, got: %s", result.FileProperties[0].FileName)
+	if result.FileProperties[0].FileName != testApexFileName {
+		t.Errorf("Expected fileName %s, got: %s", testApexFileName, result.FileProperties[0].FileName)
 	}
 
 	if result.FileProperties[0].Type != "ApexClass" {
@@ -779,7 +781,7 @@ func TestCheckRetrieveStatus_WithMessages(t *testing.T) {
 
 		w.Header().Set("Content-Type", "text/xml; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(soapResponse))
+		_, _ = w.Write([]byte(soapResponse))
 	}))
 	defer server.Close()
 
