@@ -482,6 +482,7 @@ func convertDeployDetails(xmlDetails deployDetailsXML) *DeployDetails {
 	details := &DeployDetails{}
 
 	// Convert component successes
+	//nolint:staticcheck // Cannot use type conversion - XML struct has different tags
 	for _, s := range xmlDetails.ComponentSuccesses {
 		details.ComponentSuccesses = append(details.ComponentSuccesses, ComponentSuccess{
 			Changed:       s.Changed,
@@ -495,6 +496,7 @@ func convertDeployDetails(xmlDetails deployDetailsXML) *DeployDetails {
 	}
 
 	// Convert component failures
+	//nolint:staticcheck // Cannot use type conversion - XML struct has different tags
 	for _, f := range xmlDetails.ComponentFailures {
 		details.ComponentFailures = append(details.ComponentFailures, ComponentFailure{
 			Changed:       f.Changed,
@@ -527,6 +529,7 @@ func convertTestResult(xmlTest runTestResultXML) *RunTestResult {
 	}
 
 	// Convert test successes
+	//nolint:staticcheck // Cannot use type conversion - XML struct has different tags
 	for _, ts := range xmlTest.Successes {
 		testResult.Successes = append(testResult.Successes, TestSuccess{
 			ID:         ts.ID,
@@ -538,6 +541,7 @@ func convertTestResult(xmlTest runTestResultXML) *RunTestResult {
 	}
 
 	// Convert test failures
+	//nolint:staticcheck // Cannot use type conversion - XML struct has different tags
 	for _, tf := range xmlTest.Failures {
 		testResult.Failures = append(testResult.Failures, TestFailure{
 			ID:         tf.ID,
@@ -562,6 +566,7 @@ func convertTestResult(xmlTest runTestResultXML) *RunTestResult {
 			Type:                   cc.Type,
 		}
 
+		//nolint:staticcheck // Cannot use type conversion - XML struct has different tags
 		for _, loc := range cc.LocationsNotCovered {
 			coverage.LocationsNotCovered = append(coverage.LocationsNotCovered, CodeLocation{
 				Column:        loc.Column,

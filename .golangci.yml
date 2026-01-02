@@ -7,6 +7,7 @@ linters:
     - err113 # WARN [lintersdb] The name "goerr113" is deprecated. The linter has been renamed to: err113
     - tagliatelle
     - wsl
+    - wsl_v5
     - nlreturn
     - lll
     - godot
@@ -35,6 +36,8 @@ linters:
     - perfsprint
     - prealloc
     - mnd
+    - modernize
+    - noinlineerr
   settings:
     cyclop:
       max-complexity: 12
