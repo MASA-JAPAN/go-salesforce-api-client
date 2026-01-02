@@ -94,6 +94,106 @@ if err != nil {
 }
 ```
 
+### 6️⃣ Deploy Metadata
+```go
+// Create deployment ZIP (package.xml + metadata files)
+zipBase64 := createDeploymentZip() // Your function to create base64-encoded ZIP
+
+// Configure deploy options
+options := go_salesforce_api_client.MetadataDeployOptions{
+    CheckOnly:       false, // Set true for validation-only
+    RollbackOnError: true,
+    SinglePackage:   true,
+    TestLevel:       "NoTestRun",
+}
+
+// Initiate deployment
+asyncResult, err := client.DeployMetadata(zipBase64, options)
+if err != nil {
+    fmt.Println("Deploy failed:", err)
+    return
+}
+
+// Poll for completion
+for {
+    status, err := client.CheckDeployStatus(asyncResult.ID)
+    if err != nil {
+        fmt.Println("Error checking status:", err)
+        return
+    }
+
+    fmt.Printf("Status: %s (%d/%d components)\n",
+        status.Status,
+        status.NumberComponentsDeployed,
+        status.NumberComponentsTotal)
+
+    if status.Done {
+        if status.Success {
+            fmt.Println("Deploy succeeded!")
+        } else {
+            // Print failures
+            for _, failure := range status.Details.ComponentFailures {
+                fmt.Printf("%s: %s [Line %d]\n",
+                    failure.FileName,
+                    failure.Problem,
+                    failure.LineNumber)
+            }
+        }
+        break
+    }
+
+    time.Sleep(5 * time.Second)
+}
+```
+
+### 7️⃣ Retrieve Metadata
+```go
+// Define package manifest
+manifest := `<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>*</members>
+        <name>ApexClass</name>
+    </types>
+    <version>58.0</version>
+</Package>`
+
+// Configure retrieve options
+options := go_salesforce_api_client.MetadataRetrieveOptions{
+    ApiVersion:        "58.0",
+    SinglePackage:     true,
+    UnpackageManifest: manifest,
+}
+
+// Initiate retrieve
+asyncResult, err := client.RetrieveMetadata(options)
+if err != nil {
+    fmt.Println("Retrieve failed:", err)
+    return
+}
+
+// Poll for completion
+for {
+    status, err := client.CheckRetrieveStatus(asyncResult.ID)
+    if err != nil {
+        fmt.Println("Error checking status:", err)
+        return
+    }
+
+    if status.Done {
+        if status.Success {
+            // Save ZIP file
+            zipData, _ := base64.StdEncoding.DecodeString(status.ZipFileBase64)
+            os.WriteFile("metadata.zip", zipData, 0644)
+            fmt.Println("Metadata retrieved successfully!")
+        }
+        break
+    }
+
+    time.Sleep(5 * time.Second)
+}
+```
+
 ## 📌 Supported APIs
 - **Authentication** (OAuth2)
 - **SOQL Queries**
@@ -102,6 +202,7 @@ if err != nil {
 - **Bulk Query API**
 - **Composite Requests**
 - **Limits API** (Monitor API usage)
+- **Metadata API** (Deploy & Retrieve metadata packages)
 
 ## 📜 License
 MIT License © 2025 MASA-JAPAN
