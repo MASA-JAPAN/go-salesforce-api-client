@@ -1,3 +1,5 @@
 module github.com/MASA-JAPAN/go-salesforce-api-client
 
-go 1.24.0
+go 1.25.5
+
+require github.com/MASA-JAPAN/go-salesforce-emulator v0.1.0
