@@ -781,7 +781,7 @@ func TestQuery_WithLimit(t *testing.T) {
 	defer emu.Stop()
 
 	store := emu.Store()
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		_, _ = store.CreateRecord("Account", map[string]interface{}{"Name": "Account"})
 	}
 
@@ -876,4 +876,3 @@ func TestMultipleObjectTypes_WithEmulator(t *testing.T) {
 		t.Errorf("Expected 1 Lead, got: %d", leadResp.TotalSize)
 	}
 }
-
